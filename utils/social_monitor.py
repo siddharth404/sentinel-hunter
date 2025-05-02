@@ -9,11 +9,17 @@ def display_social_monitor():
     lon = 75.3200
     radius_km = 25
     max_results = 10
-    
+
+    twitter_token = st.text_input("Twitter Bearer Token", type="password")
+
+    if not twitter_token:
+        st.warning("Please enter your Twitter Bearer Token to continue.")
+        return
+
     if st.button("Fetch Tweets"):
         st.info("Searching Twitter...")
         headers = {
-            "Authorization": f"Bearer {st.secrets['twitter_bearer_token']}"
+            "Authorization": f"Bearer {twitter_token}"
         }
 
         query = f"{keyword} point_radius:[{lon} {lat} {radius_km}km] -is:retweet lang:en"
