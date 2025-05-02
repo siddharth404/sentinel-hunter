@@ -1,7 +1,9 @@
 streamlit
-pandas
-Pillow
-exifread
-spacy
+sentinelhub
+requests
+pillow
+transformers
 scikit-learn
-matplotlib
+numpy
+pandas
+exifread
