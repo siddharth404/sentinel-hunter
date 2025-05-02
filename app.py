@@ -1,4 +1,4 @@
-// threat_intel_dashboard/app.py
+# threat_intel_dashboard/app.py
 
 import streamlit as st
 import requests
