@@ -1,9 +1,43 @@
 import streamlit as st
-import os
-import matplotlib.pyplot as plt
+from sentinelhub import SHConfig, BBox, CRS, SentinelHubRequest, MimeType, DataCollection, bbox_to_dimensions
+import datetime
+from PIL import Image
+import numpy as np
 
 def display_satellite_view():
-    st.image("sample_data/satellite_images/sample_satellite.jpg", caption="Sample Satellite View")
+    st.subheader("Sentinel-2 Satellite Viewer")
+    
+    lat = st.number_input("Latitude", value=34.0100)
+    lon = st.number_input("Longitude", value=75.3200)
+    date = st.date_input("Date", value=datetime.date(2023, 10, 1))
+    
+    config = SHConfig()
+    config.sh_client_id = st.secrets["sh_client_id"]
+    config.sh_client_secret = st.secrets["sh_client_secret"]
+
+    bbox = BBox(bbox=[lon-0.05, lat-0.05, lon+0.05, lat+0.05], crs=CRS.WGS84)
+    resolution = 10
+    size = bbox_to_dimensions(bbox, resolution=resolution)
+
+    evalscript = """
+    return [B04, B03, B02];
+    """
+
+    request = SentinelHubRequest(
+        data_folder='.',
+        evalscript=evalscript,
+        input_data=[SentinelHubRequest.input_data(
+            data_collection=DataCollection.SENTINEL2_L1C,
+            time_interval=(str(date), str(date + datetime.timedelta(days=1)))
+        )],
+        responses=[SentinelHubRequest.output_response('default', MimeType.PNG)],
+        bbox=bbox,
+        size=size,
+        config=config
+    )
+
+    image = request.get_data()[0]
+    st.image(image, caption=f"Sentinel-2 Image on {date}", use_column_width=True)
 
 def generate_report():
     st.text_area("Report Notes", "Suspicious movement seen near X coordinates...", height=200)
