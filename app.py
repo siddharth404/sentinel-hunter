@@ -1,45 +1,40 @@
+// threat_intel_dashboard/app.py
 
 import streamlit as st
-import random
-import datetime
+import requests
 import pandas as pd
-import folium
-from streamlit_folium import st_folium
 
-st.set_page_config(page_title="Live Threat Tracker", layout="wide")
+st.set_page_config(page_title="Threat Intel Dashboard", layout="wide")
 
-st.title("🛰️ OSINT + GEOINT Threat Tracker")
-st.markdown("Live mock tracking of potential threats using open-source data and satellite view.")
+st.title("🛰️ Threat Intel Dashboard")
 
-# Mock locations and keywords
-locations = {
-    "Pahalgam": [33.9986, 75.3250],
-    "Pulwama": [33.8740, 74.8990],
-    "Anantnag": [33.7312, 75.1486],
-    "Srinagar": [34.0837, 74.7973]
-}
-keywords = ["explosion", "militant", "attack", "gunfire", "encounter", "IED"]
+st.sidebar.header("🔐 API Keys Configuration")
+twitter_api_key = st.sidebar.text_input("Twitter/X Bearer Token", type="password")
+sentinel_instance_id = st.sidebar.text_input("Sentinel Hub Instance ID")
+sentinel_client_id = st.sidebar.text_input("Sentinel Hub Client ID")
+sentinel_client_secret = st.sidebar.text_input("Sentinel Hub Client Secret", type="password")
 
-# Simulate live alerts
-def generate_alert():
-    loc = random.choice(list(locations.keys()))
-    keyword = random.choice(keywords)
-    time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    return {"time": time, "location": loc, "event": keyword, "coords": locations[loc]}
+st.sidebar.header("📍 Inputs")
+keyword = st.sidebar.text_input("Search Keyword", "terrorism")
+location = st.sidebar.text_input("Location Filter (optional)", "")
 
-# Display mock alerts
-st.subheader("📡 Live Social Media OSINT Alerts")
-alerts = [generate_alert() for _ in range(5)]
-df_alerts = pd.DataFrame(alerts)
-st.dataframe(df_alerts)
+st.write("### 🌐 Twitter/X Keyword Search")
+if twitter_api_key:
+    headers = { "Authorization": f"Bearer {twitter_api_key}" }
+    query = keyword
+    url = f"https://api.twitter.com/2/tweets/search/recent?query={query}&max_results=10&tweet.fields=created_at,text"
+    response = requests.get(url, headers=headers)
 
-# Map view
-st.subheader("🗺️ Geo Map")
-m = folium.Map(location=[33.85, 75.0], zoom_start=8)
-for alert in alerts:
-    folium.Marker(
-        location=alert["coords"],
-        popup=f"{alert['location']}: {alert['event']} ({alert['time']})",
-        icon=folium.Icon(color="red", icon="info-sign")
-    ).add_to(m)
-st_data = st_folium(m, width=1200)
+    if response.status_code == 200:
+        tweets = response.json().get("data", [])
+        for tweet in tweets:
+            st.write(f"🕒 {tweet['created_at']}")
+            st.write(f"💬 {tweet['text']}")
+            st.markdown("---")
+    else:
+        st.error("Failed to fetch tweets. Check your API key.")
+else:
+    st.warning("Enter your Twitter/X API key to fetch tweets.")
+
+st.write("### 🛰️ Satellite Imagery (Placeholder)")
+st.info("Sentinel Hub integration not activated in this prototype. Add logic with Sentinel Hub APIs here.")
