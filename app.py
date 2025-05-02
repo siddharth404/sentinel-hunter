@@ -1,40 +1,28 @@
-# threat_intel_dashboard/app.py
-
 import streamlit as st
-import requests
-import pandas as pd
+from utils import geo_utils, nlp_utils, exif_utils, social_monitor
 
-st.set_page_config(page_title="Threat Intel Dashboard", layout="wide")
+st.set_page_config(page_title="OSINT Geospatial Tracker", layout="wide")
 
-st.title("🛰️ Threat Intel Dashboard")
+st.title("🛰️ OSINT Geospatial & Social Tracker - Pahalgam")
 
-st.sidebar.header("🔐 API Keys Configuration")
-twitter_api_key = st.sidebar.text_input("Twitter/X Bearer Token", type="password")
-sentinel_instance_id = st.sidebar.text_input("Sentinel Hub Instance ID")
-sentinel_client_id = st.sidebar.text_input("Sentinel Hub Client ID")
-sentinel_client_secret = st.sidebar.text_input("Sentinel Hub Client Secret", type="password")
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Satellite & Map", "Social Media", "EXIF", "NLP Intel", "Report"])
 
-st.sidebar.header("📍 Inputs")
-keyword = st.sidebar.text_input("Search Keyword", "terrorism")
-location = st.sidebar.text_input("Location Filter (optional)", "")
+with tab1:
+    st.header("🗺️ Satellite and Terrain Data")
+    geo_utils.display_satellite_view()
 
-st.write("### 🌐 Twitter/X Keyword Search")
-if twitter_api_key:
-    headers = { "Authorization": f"Bearer {twitter_api_key}" }
-    query = keyword
-    url = f"https://api.twitter.com/2/tweets/search/recent?query={query}&max_results=10&tweet.fields=created_at,text"
-    response = requests.get(url, headers=headers)
+with tab2:
+    st.header("📱 Social Media Monitor")
+    social_monitor.display_social_monitor()
 
-    if response.status_code == 200:
-        tweets = response.json().get("data", [])
-        for tweet in tweets:
-            st.write(f"🕒 {tweet['created_at']}")
-            st.write(f"💬 {tweet['text']}")
-            st.markdown("---")
-    else:
-        st.error("Failed to fetch tweets. Check your API key.")
-else:
-    st.warning("Enter your Twitter/X API key to fetch tweets.")
+with tab3:
+    st.header("📸 EXIF GPS Analyzer")
+    exif_utils.display_exif_analysis()
 
-st.write("### 🛰️ Satellite Imagery (Placeholder)")
-st.info("Sentinel Hub integration not activated in this prototype. Add logic with Sentinel Hub APIs here.")
+with tab4:
+    st.header("🧠 NLP on News & Bulletins")
+    nlp_utils.display_nlp_dashboard()
+
+with tab5:
+    st.header("📝 Final Report")
+    geo_utils.generate_report()
